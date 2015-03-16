@@ -7,22 +7,27 @@ import org.apache.mina.filter.codec.ProtocolEncoder;
 
 public class Factory implements ProtocolCodecFactory
 {
-    private Encoder encoder;
-    private Decoder decoder;
-    public Factory()
-    {
-        encoder = new Encoder();
-        decoder = new Decoder();
-    }
     @Override
-    public ProtocolEncoder getEncoder(IoSession paramIoSession) throws Exception
+    public ProtocolEncoder getEncoder(IoSession session) throws Exception
     {
+    	Encoder encoder = (Encoder)session.getAttribute("Encoder");
+    	if (encoder == null)
+    	{
+    		encoder = new Encoder();
+    		session.setAttribute("Encoder", encoder);
+    	}
         return encoder;
     }
 
     @Override
-    public ProtocolDecoder getDecoder(IoSession paramIoSession) throws Exception
+    public ProtocolDecoder getDecoder(IoSession session) throws Exception
     {
+    	Decoder decoder = (Decoder)session.getAttribute("Decoder");
+    	if (decoder == null)
+    	{
+    		decoder = new Decoder();
+    		session.setAttribute("Decoder", decoder);
+    	}
         return decoder;
     }
 }

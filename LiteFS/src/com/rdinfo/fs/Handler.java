@@ -9,7 +9,8 @@ public class Handler extends IoHandlerAdapter
     @Override
     public void exceptionCaught(IoSession session, Throwable cause) throws Exception
     {
-        System.out.println("exceptionCaught...");
+        System.out.println("exceptionCaught..." + cause.getMessage());
+        session.write(5);
         session.close(false);
     }
 
@@ -19,6 +20,10 @@ public class Handler extends IoHandlerAdapter
         System.out.println("messageReceived..." + message);
         int command = Integer.parseInt(message.toString());
         session.write(command);
+        if (command != 2)
+        {
+        	session.close(false);
+        }
     }
 
     @Override
@@ -31,7 +36,6 @@ public class Handler extends IoHandlerAdapter
     public void sessionClosed(IoSession session) throws Exception
     {
         System.out.println("sessionClosed...");
-        session.close(false);
     }
 
     @Override
@@ -44,6 +48,7 @@ public class Handler extends IoHandlerAdapter
     public void sessionIdle(IoSession session, IdleStatus status) throws Exception
     {
         System.out.println("sessionIdle...");
+        session.write(4);
         session.close(false);
     }
 

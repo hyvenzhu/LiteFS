@@ -18,17 +18,17 @@ import org.apache.mina.filter.codec.ProtocolDecoderOutput;
  * 1：文件已存在
  * 2：可以开始上传
  * 3：上传成功
- * 4：上传失败
+ * 4：IDLE连接断开
+ * 5：服务器内部错误
  * @author hiphonezhu@gmail.com
  * @version [LiteFS, 2015-3-15]
  */
 public class Decoder implements ProtocolDecoder
 {
-    private boolean saveSuccess = true;
     private Map<String, String> basicMap = new HashMap<String, String>();
     private String destDirPath = "C:/FS"; // 文件保存目录
     boolean hasReachBasicInfo;
-    int receivedFileLength;
+    long receivedFileLength;
     
     public Decoder()
     {
@@ -77,7 +77,6 @@ public class Decoder implements ProtocolDecoder
                     {
                         System.out.println("invalid msg:" + basicInfo);
                         
-                        saveSuccess = false;
                         out.write(0);
                         return;
                     }
@@ -101,16 +100,9 @@ public class Decoder implements ProtocolDecoder
                 }
             }
         }
-        if (hasReachBasicInfo && receivedFileLength == Integer.parseInt(basicMap.get("fileLength")))
+        if (hasReachBasicInfo && receivedFileLength == Long.parseLong(basicMap.get("fileLength")))
         {
-        	if (saveSuccess)
-        	{
-        		out.write(3);
-        	}
-        	else
-        	{
-        		out.write(4);
-        	}
+    		out.write(3);
           
         	// close
         	if (bos != null)
@@ -208,7 +200,12 @@ public class Decoder implements ProtocolDecoder
     public void finishDecode(IoSession session,
             ProtocolDecoderOutput out) throws Exception
     {
-
+    	// close
+    	if (bos != null)
+    	{
+    		bos.close();
+    		bos = null;
+    	}
     }
 
     @Override
