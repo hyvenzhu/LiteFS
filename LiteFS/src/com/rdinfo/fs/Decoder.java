@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.CumulativeProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 /**
  * 文件信息(格式：token=认证信息&md5=文件摘要信息&fileLength=文件长度)
@@ -23,11 +23,11 @@ import org.apache.mina.filter.codec.ProtocolDecoderOutput;
  * @author hiphonezhu@gmail.com
  * @version [LiteFS, 2015-3-15]
  */
-public class Decoder implements ProtocolDecoder
+public class Decoder extends CumulativeProtocolDecoder
 {
     private Map<String, String> basicMap = new HashMap<String, String>();
     private String destDirPath = "C:/FS"; // 文件保存目录
-    boolean hasReachBasicInfo;
+    boolean hasDecodeProtocol; // 文件协议是否已经解码
     long receivedFileLength;
     
     public Decoder()
@@ -40,33 +40,39 @@ public class Decoder implements ProtocolDecoder
     }
     
     @Override
-    public void decode(IoSession session, IoBuffer buffer,
-            ProtocolDecoderOutput out) throws Exception
-    {
-        int startPosition = buffer.position();
-        while(buffer.hasRemaining())
-        {
-            if (hasReachBasicInfo)
+	protected boolean doDecode(IoSession session, IoBuffer buffer,
+			ProtocolDecoderOutput out) throws Exception {
+    	if (hasDecodeProtocol)
+    	{
+    		readStream(buffer);
+            if (receivedFileLength == Long.parseLong(basicMap.get("fileLength")))
             {
-                // 保存文件
-                readStream(buffer);
+      		   out.write(3);
+            
+          	   // close
+          	   if (bos != null)
+          	   {
+          	  	  bos.close();
+          	  	  bos = null;
+               }
             }
-            else
+    		return true;
+    	}
+    	else
+    	{
+    		while(buffer.hasRemaining())
             {
-                byte b = buffer.get();
+    			byte b = buffer.get();
                 if (b == '\n') // 读取提交的文件信息
                 {
-                    int currentPosition = buffer.position();
-                    int limit = buffer.limit();
-                    buffer.position(startPosition);
-                    buffer.limit(currentPosition - 1);
+                	hasDecodeProtocol = true;
+                	int currentPosition = buffer.position();
+                    buffer.position(0);
                     
-                    IoBuffer in = buffer.slice();
-                    byte[] dest = new byte[in.limit()];
-                    in.get(dest);
+                    byte[] dest = new byte[currentPosition - 1];
+                    buffer.get(dest);
                     String basicInfo = new String(dest, "utf-8");
                     
-                    buffer.limit(limit);
                     buffer.position(currentPosition);
                     
                     // 检测文件信息是否合法
@@ -78,7 +84,7 @@ public class Decoder implements ProtocolDecoder
                         System.out.println("invalid msg:" + basicInfo);
                         
                         out.write(0);
-                        return;
+                        return true;
                     }
                     
                     // 检测服务器是否已经存在该文件
@@ -93,25 +99,15 @@ public class Decoder implements ProtocolDecoder
                     if (fileNames != null && fileNames.length > 0) // 服务器已存在此文件, 直接返回成功
                     {
                         out.write(1);
-                        return;
+                        return true;
                     }
                     out.write(2);
-                    hasReachBasicInfo = true;
+                	return true;
                 }
             }
-        }
-        if (hasReachBasicInfo && receivedFileLength == Long.parseLong(basicMap.get("fileLength")))
-        {
-    		out.write(3);
-          
-        	// close
-        	if (bos != null)
-        	{
-        		bos.close();
-        		bos = null;
-        	}
-        }
-    }
+    		return false;
+    	}
+	}
     
     private void readStream(IoBuffer in) throws IOException
     {

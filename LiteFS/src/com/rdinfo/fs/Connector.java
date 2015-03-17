@@ -17,8 +17,8 @@ public class Connector
         acceptor = new NioSocketAcceptor();
         acceptor.setHandler(new Handler());
         acceptor.getSessionConfig().setIdleTime(IdleStatus.READER_IDLE, 15); // 15秒如果client不发送数据则进入IDLE状态
-        acceptor.getFilterChain().addLast("ThreadPool",new ExecutorFilter(Executors.newCachedThreadPool()));
         acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new Factory()));
+        acceptor.getFilterChain().addLast("ThreadPool",new ExecutorFilter(Executors.newCachedThreadPool())); // 一定要配置在ProtocolCodecFilter后面，不然文件会错误
     }
     
     public void start(int port)
