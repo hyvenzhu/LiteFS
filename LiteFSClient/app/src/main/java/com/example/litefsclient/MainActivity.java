@@ -43,7 +43,7 @@ public class MainActivity extends Activity
                             9898);
                     OutputStream os = socket.getOutputStream();
                     InputStream is = socket.getInputStream();
-                    os.write(("token=认证信息&md5=" + Thread.currentThread().getId()
+                    os.write(("token=认证信息&md5=" + Utils.getMd5ByFile(destFile)
                             + ".zip&fileLength=" + destFile.length() + "\n").getBytes("utf-8"));
 
                     int command = readCommand(is);

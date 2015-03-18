@@ -48,7 +48,22 @@ public class Handler extends IoHandlerAdapter
     public void sessionIdle(IoSession session, IdleStatus status) throws Exception
     {
         System.out.println("sessionIdle...");
-        session.write(4);
+        Decoder decoder = (Decoder)session.getAttribute("Decoder");
+        if (decoder != null)
+        {
+        	if (!decoder.vertifyFile())
+        	{
+        		session.write(6);
+        	}
+        	else
+        	{
+        		session.write(4);
+        	}
+        }
+        else
+        {
+        	session.write(4);
+        }
         session.close(false);
     }
 

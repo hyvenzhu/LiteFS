@@ -35,5 +35,9 @@ public class Connector
     
     public void stop()
     {
+    	if (acceptor != null)
+    	{
+    		acceptor.unbind();
+    	}
     }
 }
