@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="D:\Android\software\android-sdk\extras\android\m2repository\com\android\support\support-v4\18.0.0\support-v4-18.0.0.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="44ec51e9d395a47aab135e5e1b556c0007442156">
+        <dex dex="D:\Android\源码相关\LiteFS\LiteFSClient\app\build\intermediates\pre-dexed\debug\support-v4-18.0.0-fea66d02a47ca49cb1a093cd0b85dfd090b23f03.jar" />
+    </item>
+
+</items>
