@@ -39,12 +39,12 @@ public class MainActivity extends Activity
                     File destFile = new File(sdcardDir,
                             "4.0_usb_tools.zip");
 
-                    Socket socket = new Socket("192.168.1.104",
+                    Socket socket = new Socket("172.16.0.53",
                             9898);
                     OutputStream os = socket.getOutputStream();
                     InputStream is = socket.getInputStream();
                     os.write(("token=认证信息&md5=" + Utils.getMd5ByFile(destFile)
-                            + ".zip&fileLength=" + destFile.length() + "\n").getBytes("utf-8"));
+                            + "&fileLength=" + destFile.length() + "\n").getBytes("utf-8"));
 
                     int command = readCommand(is);
                     System.out.println("command >>> " + command);

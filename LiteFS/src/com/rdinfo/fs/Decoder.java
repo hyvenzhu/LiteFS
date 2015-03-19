@@ -66,7 +66,7 @@ public class Decoder extends CumulativeProtocolDecoder
                     
                     // 检测文件信息是否合法
                     protocolReader.readProtocol(protocolInfo);
-                    if (protocolReader.validate())
+                    if (!protocolReader.validate())
                     {
                         System.out.println("invalid protocol:" + protocolInfo + ", correct format is 'token=认证信息&md5=文件摘要信息&fileLength=文件长度'");
                         out.write(0);
@@ -90,6 +90,7 @@ public class Decoder extends CumulativeProtocolDecoder
     public void finishDecode(IoSession session,
             ProtocolDecoderOutput out) throws Exception
     {
+    	System.out.println("finishDecode...");
     	streamReader.close();
     }
 

@@ -8,11 +8,21 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
-
+/**
+ * 工具类
+ */
 public class Utils 
 {
+	/**
+	 * 获取文件MD5摘要
+	 * @param file
+	 * @return
+	 * @throws FileNotFoundException
+	 */
 	public static String getMd5ByFile(File file) throws FileNotFoundException 
 	{
+		long start = System.currentTimeMillis();
+		System.out.println("getMd5ByFile start...");
 		String value = null;
 		FileInputStream in = new FileInputStream(file);
 		try 
@@ -23,6 +33,7 @@ public class Utils
 			md5.update(byteBuffer);
 			BigInteger bi = new BigInteger(1, md5.digest());
 			value = bi.toString(16);
+			byteBuffer.clear();
 		} 
 		catch (Exception e) 
 		{
@@ -30,18 +41,19 @@ public class Utils
 		} 
 		finally 
 		{
-			if (null != in) 
+			try 
 			{
-				try 
+				if (null != in) 
 				{
 					in.close();
-				} 
-				catch (IOException e) 
-				{
-					e.printStackTrace();
 				}
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
 			}
 		}
+		System.out.println("getMd5ByFile end...耗时：" + (System.currentTimeMillis() - start) + "毫秒");
 		return value;
 	} 
 }
