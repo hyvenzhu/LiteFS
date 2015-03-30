@@ -37,7 +37,7 @@ public class MainActivity extends Activity
                 {
                     File sdcardDir = Environment.getExternalStorageDirectory();
                     File destFile = new File(sdcardDir,
-                            "4.0_usb_tools.zip");
+                            "db.db");
 
                     Socket socket = new Socket("172.16.0.53",
                             9898);

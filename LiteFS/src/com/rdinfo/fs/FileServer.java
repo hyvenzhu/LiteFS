@@ -8,7 +8,20 @@ public class FileServer
      */
     public static void main(String[] args)
     {
-        Connector connector = new Connector();
-        connector.start(9898);
+        try
+        {
+            Connector connector = new Connector();
+            connector.start(9898);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        catch (Throwable t)
+        {
+            t.printStackTrace();
+            System.exit(1);
+        }
     }
 }
