@@ -37,53 +37,52 @@ public class Decoder extends CumulativeProtocolDecoder
     @Override
 	protected boolean doDecode(IoSession session, IoBuffer buffer,
 			ProtocolDecoderOutput out) throws Exception {
-    	if (protocolReader.validate())
-    	{
-    		streamReader.readStream(buffer);
-            if (vertifyFile())
+        if (session.getAttribute("ParamLength") == null)
+        {
+            if(buffer.remaining() >= 4)
             {
-      		   out.write(3);
-            
-      		   streamReader.close();
+                int paramLength = buffer.getInt();
+                session.setAttribute("ParamLength", paramLength);
+                return true;
             }
-    		return true;
-    	}
-    	else
-    	{
-    		while(buffer.hasRemaining())
+        }
+        else
+        {
+            int paramLength = Integer.parseInt(session.getAttribute("ParamLength").toString());
+            if (protocolReader.validate())
             {
-    			byte b = buffer.get();
-                if (b == '\n') // 读取提交的文件信息
+                streamReader.readStream(buffer);
+                if (vertifyFile()) // 上传成功
                 {
-                	int currentPosition = buffer.position();
-                    buffer.position(0);
-                    
-                    byte[] dest = new byte[currentPosition - 1];
-                    buffer.get(dest);
-                    String protocolInfo = new String(dest, "utf-8");
-                    
-                    buffer.position(currentPosition);
-                    
-                    // 检测文件信息是否合法
-                    protocolReader.readProtocol(protocolInfo);
-                    if (!protocolReader.validate())
-                    {
-                        System.out.println("invalid protocol:" + protocolInfo + ", correct format is 'token=认证信息&md5=文件摘要信息&fileLength=文件长度'");
-                        out.write(0);
-                        return true;
-                    }
-                    
-                    if (streamReader.fileExist()) // 服务器已存在此文件, 直接返回成功
-                    {
-                        out.write(1);
-                        return true;
-                    }
-                    out.write(2);
-                	return true;
+                    out.write(3);
+                    streamReader.close();
                 }
+                return true;
             }
-    		return false;
-    	}
+            else if (buffer.remaining() >= paramLength)
+            {
+                byte[] paramData = new byte[paramLength];
+                buffer.get(paramData);
+                
+                String protocolInfo = new String(paramData, "utf-8");
+                protocolReader.readProtocol(protocolInfo);
+                if (!protocolReader.validate()) // 参数不合法
+                {
+                    System.out.println("invalid protocol:" + protocolInfo + ", correct format is 'token=认证信息&md5=文件摘要信息&fileLength=文件长度'");
+                    out.write(0);
+                }
+                else if (streamReader.fileExist()) // 服务器已存在此文件
+                {
+                    out.write(1);
+                }
+                else // 可以开始上传
+                {
+                    out.write(2);
+                }
+                return true;
+            }
+        }
+        return false;
 	}
     
     @Override
