@@ -9,23 +9,23 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 /**
- * ¹¤¾ßÀà
+ * å·¥å…·ç±»
  */
-public class Utils 
+public class Utils
 {
 	/**
-	 * »ñÈ¡ÎÄ¼şMD5ÕªÒª
+	 * è·å–æ–‡ä»¶MD5æ‘˜è¦
 	 * @param file
 	 * @return
 	 * @throws FileNotFoundException
 	 */
-	public static String getMd5ByFile(File file) throws FileNotFoundException 
+	public static String getMd5ByFile(File file) throws FileNotFoundException
 	{
 		long start = System.currentTimeMillis();
 		System.out.println("getMd5ByFile start...");
 		String value = null;
 		FileInputStream in = new FileInputStream(file);
-		try 
+		try
 		{
 			MappedByteBuffer byteBuffer = in.getChannel().map(
 					FileChannel.MapMode.READ_ONLY, 0, file.length());
@@ -34,26 +34,26 @@ public class Utils
 			BigInteger bi = new BigInteger(1, md5.digest());
 			value = bi.toString(16);
 			byteBuffer.clear();
-		} 
-		catch (Exception e) 
+		}
+		catch (Exception e)
 		{
 			e.printStackTrace();
-		} 
-		finally 
+		}
+		finally
 		{
-			try 
+			try
 			{
-				if (null != in) 
+				if (null != in)
 				{
 					in.close();
 				}
-			} 
-			catch (IOException e) 
+			}
+			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
 		}
-		System.out.println("getMd5ByFile end...ºÄÊ±£º" + (System.currentTimeMillis() - start) + "ºÁÃë");
+		System.out.println("getMd5ByFile end...è€—æ—¶ï¼š" + (System.currentTimeMillis() - start) + "æ¯«ç§’");
 		return value;
-	} 
+	}
 }

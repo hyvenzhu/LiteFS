@@ -7,10 +7,10 @@ import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 
 public class Encoder implements ProtocolEncoder
 {
-    
+
     @Override
     public void encode(IoSession session, Object object,
-            ProtocolEncoderOutput output) throws Exception
+                       ProtocolEncoderOutput output) throws Exception
     {
         IoBuffer ioBuffer = IoBuffer.allocate(8);
         ioBuffer.setAutoExpand(true);

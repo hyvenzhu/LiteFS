@@ -4,19 +4,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 分析文件协议
+ * 鍒嗘瀽鏂囦欢鍗忚
  */
-public class ProtocolReader 
+public class ProtocolReader
 {
-	private Map<String, String> protocolMap = new HashMap<String, String>();
-	
-	/**
-     * 读取文件协议
+    private Map<String, String> protocolMap = new HashMap<String, String>();
+
+    /**
+     * 璇诲彇鏂囦欢鍗忚
      * @param protocol
      */
     public void readProtocol(String protocol)
     {
-    	System.out.println("received:" + protocol);
+        System.out.println("received:" + protocol);
         if (protocol == null)
         {
             return;
@@ -29,23 +29,27 @@ public class ProtocolReader
                 String[] keyValue = str.split("=");
                 if (keyValue != null && keyValue.length > 1)
                 {
-                	protocolMap.put(keyValue[0], keyValue[1]);
+                    protocolMap.put(keyValue[0], keyValue[1]);
                 }
             }
         }
     }
-    
+
     public String get(String protocolName)
     {
-    	return protocolMap.get(protocolName);
+        return protocolMap.get(protocolName);
     }
-    
+
     public boolean validate()
     {
-    	if (get("token") == null || get("md5") == null || get("fileLength") == null)
-    	{
-    		return false;
-    	}
-    	return true;
+        if (get("token") == null || get("md5") == null || get("fileLength") == null)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public void reset() {
+        protocolMap.clear();
     }
 }

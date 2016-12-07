@@ -7,36 +7,36 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.CumulativeProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 /**
- * ÎÄ¼şĞÅÏ¢(¸ñÊ½£ºtoken=ÈÏÖ¤ĞÅÏ¢&md5=ÎÄ¼şÕªÒªĞÅÏ¢&fileLength=ÎÄ¼ş³¤¶È)
- * 0£º¸ñÊ½·Ç·¨
- * 1£ºÎÄ¼şÒÑ´æÔÚ
- * 2£º¿ÉÒÔ¿ªÊ¼ÉÏ´«
- * 3£ºÉÏ´«³É¹¦
- * 4£ºIDLEÁ¬½Ó¶Ï¿ª
- * 5£º·şÎñÆ÷ÄÚ²¿´íÎó
- * 6£ºÎÄ¼şĞ£Ñé²»ÕıÈ·(ÊÕµ½µÄ³¤¶È²»¶Ô»òmd5Ğ£Ñé²»ÕıÈ·)
+ * æ–‡ä»¶ä¿¡æ¯(æ ¼å¼ï¼štoken=è®¤è¯ä¿¡æ¯&md5=æ–‡ä»¶æ‘˜è¦ä¿¡æ¯&fileLength=æ–‡ä»¶é•¿åº¦)
+ * 0ï¼šæ ¼å¼éæ³•
+ * 1ï¼šæ–‡ä»¶å·²å­˜åœ¨
+ * 2ï¼šå¯ä»¥å¼€å§‹ä¸Šä¼ 
+ * 3ï¼šä¸Šä¼ æˆåŠŸ
+ * 4ï¼šIDLEè¿æ¥æ–­å¼€
+ * 5ï¼šæœåŠ¡å™¨å†…éƒ¨é”™è¯¯
+ * 6ï¼šæ–‡ä»¶æ ¡éªŒä¸æ­£ç¡®(æ”¶åˆ°çš„é•¿åº¦ä¸å¯¹æˆ–md5æ ¡éªŒä¸æ­£ç¡®)
  * @author hiphonezhu@gmail.com
  * @version [LiteFS, 2015-3-15]
  */
 public class Decoder extends CumulativeProtocolDecoder
 {
-	private StreamReader streamReader;
+    private StreamReader streamReader;
     private ProtocolReader protocolReader;
-    
+
     public Decoder()
     {
         protocolReader = new ProtocolReader();
         streamReader = new StreamReader(protocolReader);
     }
-    
+
     public boolean vertifyFile() throws FileNotFoundException
     {
-    	return streamReader.readOver() && streamReader.md5Legal();
+        return streamReader.readOver() && streamReader.md5Legal();
     }
-    
+
     @Override
-	protected boolean doDecode(IoSession session, IoBuffer buffer,
-			ProtocolDecoderOutput out) throws Exception {
+    protected boolean doDecode(IoSession session, IoBuffer buffer,
+                               ProtocolDecoderOutput out) throws Exception {
         if (session.getAttribute("ParamLength") == null)
         {
             if(buffer.remaining() >= 4)
@@ -52,10 +52,11 @@ public class Decoder extends CumulativeProtocolDecoder
             if (protocolReader.validate())
             {
                 streamReader.readStream(buffer);
-                if (vertifyFile()) // ÉÏ´«³É¹¦
+                if (vertifyFile()) // ä¸Šä¼ æˆåŠŸ
                 {
                     out.write(3);
-                    streamReader.close();
+
+                    reset(session, buffer);
                 }
                 return true;
             }
@@ -63,19 +64,23 @@ public class Decoder extends CumulativeProtocolDecoder
             {
                 byte[] paramData = new byte[paramLength];
                 buffer.get(paramData);
-                
+
                 String protocolInfo = new String(paramData, "utf-8");
                 protocolReader.readProtocol(protocolInfo);
-                if (!protocolReader.validate()) // ²ÎÊı²»ºÏ·¨
+                if (!protocolReader.validate()) // å‚æ•°ä¸åˆæ³•
                 {
-                    System.out.println("invalid protocol:" + protocolInfo + ", correct format is 'token=ÈÏÖ¤ĞÅÏ¢&md5=ÎÄ¼şÕªÒªĞÅÏ¢&fileLength=ÎÄ¼ş³¤¶È'");
+                    System.out.println("invalid protocol:" + protocolInfo + ", correct format is 'token=è®¤è¯ä¿¡æ¯&md5=æ–‡ä»¶æ‘˜è¦ä¿¡æ¯&fileLength=æ–‡ä»¶é•¿åº¦'");
                     out.write(0);
+
+                    reset(session, buffer);
                 }
-                else if (streamReader.fileExist()) // ·şÎñÆ÷ÒÑ´æÔÚ´ËÎÄ¼ş
+                else if (streamReader.fileExist()) // æœåŠ¡å™¨å·²å­˜åœ¨æ­¤æ–‡ä»¶
                 {
                     out.write(1);
+
+                    reset(session, buffer);
                 }
-                else // ¿ÉÒÔ¿ªÊ¼ÉÏ´«
+                else // å¯ä»¥å¼€å§‹ä¸Šä¼ 
                 {
                     out.write(2);
                 }
@@ -83,14 +88,19 @@ public class Decoder extends CumulativeProtocolDecoder
             }
         }
         return false;
-	}
-    
+    }
+
+    void reset(IoSession session, IoBuffer buffer) {
+        session.setAttribute("ParamLength", null);
+        streamReader.reset();
+    }
+
     @Override
     public void finishDecode(IoSession session,
-            ProtocolDecoderOutput out) throws Exception
+                             ProtocolDecoderOutput out) throws Exception
     {
-    	System.out.println("finishDecode...");
-    	streamReader.close();
+        System.out.println("finishDecode...");
+        streamReader.close();
     }
 
     @Override

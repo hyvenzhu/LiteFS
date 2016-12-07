@@ -10,76 +10,100 @@ import java.io.IOException;
 import org.apache.mina.core.buffer.IoBuffer;
 
 /**
- * ±£¥ÊŒƒº˛
+ * ‰øùÂ≠òÊñá‰ª∂
  */
-public class StreamReader 
+public class StreamReader
 {
-	private String destDirPath = "C:/FS"; // Œƒº˛±£¥Êƒø¬º
-	private ProtocolReader protocolReader; // ∂¡»°«Î«Û–≠“È
-	private long receivedFileLength; // “—æ≠Ω” ’µΩµƒŒƒº˛≥§∂»
-	private BufferedOutputStream bos; // Œƒº˛ ‰≥ˆ¡˜
-	
-	public StreamReader(ProtocolReader protocolReader) 
-	{
-		this.protocolReader = protocolReader;
-		File dir = new File(destDirPath);
+    private String destDirPath = "/Users/hiphonezhu/Desktop/F/temp"; // Êñá‰ª∂‰øùÂ≠òÁõÆÂΩï
+    private ProtocolReader protocolReader; // ËØªÂèñËØ∑Ê±ÇÂçèËÆÆ
+    private long receivedFileLength; // Â∑≤ÁªèÊé•Êî∂Âà∞ÁöÑÊñá‰ª∂ÈïøÂ∫¶
+    private BufferedOutputStream bos; // Êñá‰ª∂ËæìÂá∫ÊµÅ
+
+    public StreamReader(ProtocolReader protocolReader)
+    {
+        this.protocolReader = protocolReader;
+        File dir = new File(destDirPath);
         if (!dir.exists())
         {
             dir.mkdirs();
         }
-	}
-	
-	/**
-	 * ºÏ≤‚∑˛ŒÒ∆˜ «∑Ò“—æ≠¥Ê‘⁄∏√Œƒº˛
-	 * @return
-	 */
-	public boolean fileExist()
-	{
+    }
+
+    public void reset() {
+        if (protocolReader != null) {
+            protocolReader.reset();
+        }
+
+        receivedFileLength = 0;
+        close();
+    }
+
+    /**
+     * Ê£ÄÊµãÊúçÂä°Âô®ÊòØÂê¶Â∑≤ÁªèÂ≠òÂú®ËØ•Êñá‰ª∂
+     * @return
+     */
+    public boolean fileExist()
+    {
         String[] fileNames = new File(destDirPath).list(new FilenameFilter()
         {
             @Override
             public boolean accept(File dir, String name)
             {
-                return protocolReader.get("md5").equals(name);
+                return getFileName().equals(name);
             }
         });
         if (fileNames != null && fileNames.length > 0)
         {
-        	return true;
+            return true;
         }
         return false;
-	}
-	
-	/**
-	 * Œƒº˛ «∑ÒΩ” ’ÕÍ±œ
-	 * @return
-	 */
-	public boolean readOver()
-	{
-		return receivedFileLength == Long.parseLong(protocolReader.get("fileLength"));
-	}
-	
-	/**
-	 * Œƒº˛md5–£—È «∑Ò∫œ∑®
-	 * @return
-	 * @throws FileNotFoundException
-	 */
-	public boolean md5Legal() throws FileNotFoundException
-	{
-		return Utils.getMd5ByFile(new File(destDirPath, protocolReader.get("md5"))).equals(protocolReader.get("md5"));
-	}
-	
-	/**
-	 * ∂¡»°buffer÷–µƒ ˝æ›
-	 * @param in
-	 * @throws IOException
-	 */
-	public void readStream(IoBuffer in) throws IOException
+    }
+
+    /**
+     * ‰øùÂ≠òÁöÑÊñá‰ª∂Âêç
+     * @return
+     */
+    private String getFileName() {
+        final String md5 = protocolReader.get("md5"); // Êñá‰ª∂ÁöÑmd5
+        final String fileName = protocolReader.get("fileName"); // ÂÆ¢Êà∑Á´Ø‰º†ËøáÊù•ÁöÑÊñá‰ª∂Âêç
+
+        String saveName = md5;
+        if (fileName != null && fileName.length() > 0) {
+            saveName += "_" + fileName;
+        }
+        return saveName;
+    }
+
+    /**
+     * Êñá‰ª∂ÊòØÂê¶Êé•Êî∂ÂÆåÊØï
+     * @return
+     */
+    public boolean readOver()
+    {
+        return receivedFileLength == Long.parseLong(protocolReader.get("fileLength"));
+    }
+
+    /**
+     * Êñá‰ª∂md5Ê†°È™åÊòØÂê¶ÂêàÊ≥ï
+     * @return
+     * @throws FileNotFoundException
+     */
+    public boolean md5Legal() throws FileNotFoundException
+    {
+        return Utils.getMd5ByFile(new File(destDirPath, getFileName())).equals(protocolReader.get("md5"));
+    }
+
+    /**
+     * ËØªÂèñbuffer‰∏≠ÁöÑÊï∞ÊçÆ
+     * @param in
+     * @throws IOException
+     */
+    public void readStream(IoBuffer in) throws IOException
     {
         while(in.hasRemaining())
         {
             int positon = in.position();
-            if (in.limit() - positon > 1024 * 4) //  ˝æ›¥Û”⁄4k
+            if (in.limit() - positon > 1024 * 4) // Êï∞ÊçÆÂ§ß‰∫é4k
             {
                 byte[] data = new byte[1024 * 4];
                 in.get(data);
@@ -93,19 +117,18 @@ public class StreamReader
             }
         }
     }
-    
+
     /**
-     * Ω´ ˝æ›±£¥ÊµΩŒƒº˛
+     * Â∞ÜÊï∞ÊçÆ‰øùÂ≠òÂà∞Êñá‰ª∂
      * @param data
      */
     private void saveData(byte[] data)
     {
         if (bos == null)
         {
-            final String md5 = protocolReader.get("md5");
             try
             {
-                File file = new File(destDirPath, md5);
+                File file = new File(destDirPath, getFileName());
                 if (!file.exists())
                 {
                     file.createNewFile();
@@ -119,7 +142,7 @@ public class StreamReader
         }
         try
         {
-        	receivedFileLength += data.length;
+            receivedFileLength += data.length;
             bos.write(data);
             bos.flush();
         }
@@ -128,21 +151,21 @@ public class StreamReader
             e.printStackTrace();
         }
     }
-    
+
     /**
-     * πÿ±’Œƒº˛¡˜
+     * ÂÖ≥Èó≠Êñá‰ª∂ÊµÅ
      */
     public void close()
     {
-    	// close
-    	if (bos != null)
-    	{
-    		try {
-				bos.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-    		bos = null;
-    	}
+        // close
+        if (bos != null)
+        {
+            try {
+                bos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            bos = null;
+        }
     }
 }

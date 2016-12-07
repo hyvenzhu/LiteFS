@@ -4,12 +4,20 @@ import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 public class Handler extends IoHandlerAdapter
 {
     @Override
     public void exceptionCaught(IoSession session, Throwable cause) throws Exception
     {
-        System.out.println("exceptionCaught..." + cause.getMessage());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        cause.printStackTrace(ps);
+        String errorMsg = new String(baos.toByteArray());
+
+        System.out.println("exceptionCaught..." + errorMsg);
         session.write(5);
         session.close(false);
     }
@@ -20,10 +28,10 @@ public class Handler extends IoHandlerAdapter
         System.out.println("messageReceived..." + message);
         int command = Integer.parseInt(message.toString());
         session.write(command);
-        if (command != 2)
-        {
-        	session.close(false);
-        }
+//        if (command != 2)
+//        {
+//            session.close(false);
+//        }
     }
 
     @Override
@@ -64,7 +72,7 @@ public class Handler extends IoHandlerAdapter
         {
         	session.write(4);
         }
-        session.close(false);
+//        session.close(false);
     }
 
     @Override

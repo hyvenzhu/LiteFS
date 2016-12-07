@@ -16,11 +16,11 @@ public class Connector
     {
         acceptor = new NioSocketAcceptor();
         acceptor.setHandler(new Handler());
-        acceptor.getSessionConfig().setIdleTime(IdleStatus.READER_IDLE, 15); // 15ÃëÈç¹ûclient²»·¢ËÍÊı¾İÔò½øÈëIDLE×´Ì¬
+        acceptor.getSessionConfig().setIdleTime(IdleStatus.READER_IDLE, 15); // 15ç§’å¦‚æœclientä¸å‘é€æ•°æ®åˆ™è¿›å…¥IDLEçŠ¶æ€
         acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new Factory()));
-        acceptor.getFilterChain().addLast("ThreadPool",new ExecutorFilter(Executors.newCachedThreadPool())); // Ò»¶¨ÒªÅäÖÃÔÚProtocolCodecFilterºóÃæ£¬²»È»ÎÄ¼ş»á´íÎó
+        acceptor.getFilterChain().addLast("ThreadPool",new ExecutorFilter(Executors.newCachedThreadPool())); // ä¸€å®šè¦é…ç½®åœ¨ProtocolCodecFilteråé¢ï¼Œä¸ç„¶æ–‡ä»¶ä¼šé”™è¯¯
     }
-    
+
     public void start(int port)
     {
         try
@@ -32,12 +32,12 @@ public class Connector
             e.printStackTrace();
         }
     }
-    
+
     public void stop()
     {
-    	if (acceptor != null)
-    	{
-    		acceptor.unbind();
-    	}
+        if (acceptor != null)
+        {
+            acceptor.unbind();
+        }
     }
 }
