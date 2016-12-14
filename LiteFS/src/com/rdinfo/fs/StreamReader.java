@@ -103,7 +103,18 @@ public class StreamReader
         while(in.hasRemaining())
         {
             int positon = in.position();
-            if (in.limit() - positon > 1024 * 4) // 数据大于4k
+
+            // 没有保存的数据长度
+            int remainLength = in.limit() - positon;
+            // 文件"缺失"的数据长度
+            long fileLengthRemain = Long.parseLong(protocolReader.get("fileLength")) - receivedFileLength;
+
+            if (remainLength > fileLengthRemain)
+            {
+                remainLength = (int)fileLengthRemain;
+            }
+
+            if (remainLength > 1024 * 4) // 数据大于4k
             {
                 byte[] data = new byte[1024 * 4];
                 in.get(data);
@@ -111,7 +122,7 @@ public class StreamReader
             }
             else
             {
-                byte[] data = new byte[in.limit() - positon];
+                byte[] data = new byte[remainLength];
                 in.get(data);
                 saveData(data);
             }

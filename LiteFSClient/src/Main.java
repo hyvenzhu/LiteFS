@@ -29,21 +29,15 @@ public class Main {
                 @Override
                 public void run() {
                     try {
-                        Socket socket = new Socket("127.0.0.1", 9899);
+                        Socket socket = new Socket("127.0.0.1", 5599);
                         OutputStream os = socket.getOutputStream();
                         InputStream is = socket.getInputStream();
 
                         // 模拟每个用户发送完整数据包5次
-                        for(int i = 0; i < 50; i++) {
-                            // fileName字段可选
-                            byte[] paramData = ("token=认证信息&md5=" + Utils.getMd5ByFile(destFile)
-                                    + "&fileLength=" + destFile.length() + "&fileName=" + "(" + (i + 1) + ")" + destFile.getName()).getBytes("utf-8");
-
-                            byte[] dataLen = new byte[4];
-                            ByteBuffer.wrap(dataLen).putInt(paramData.length);
-
-                            os.write(dataLen);
-                            os.write(paramData);
+                        for(int i = 0; i < 2; i++) {
+                            if (i == 0) {
+                                sendProtocol(os, destFile, i);
+                            }
 
                             int command = readCommand(is);
                             System.out.println("command >>> " + command);
@@ -58,6 +52,7 @@ public class Main {
                                             0,
                                             len);
                                 }
+                                sendProtocol(os, destFile, 1);
                                 os.flush();
                                 fis.close();
 
@@ -75,6 +70,18 @@ public class Main {
                 }
             }).start();
         }
+    }
+
+    public static void sendProtocol(OutputStream os, File destFile, int i) throws IOException {
+        // fileName字段可选
+        byte[] paramData = ("token=认证信息&md5=" + Utils.getMd5ByFile(destFile)
+                + "&fileLength=" + destFile.length() + "&fileName=" + "(" + (i + 1) + ")" + destFile.getName()).getBytes("utf-8");
+
+        byte[] dataLen = new byte[4];
+        ByteBuffer.wrap(dataLen).putInt(paramData.length);
+
+        os.write(dataLen);
+        os.write(paramData);
     }
 
     public static int readCommand(InputStream is) {

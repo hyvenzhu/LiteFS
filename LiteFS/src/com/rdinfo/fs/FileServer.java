@@ -11,7 +11,7 @@ public class FileServer
         try
         {
             Connector connector = new Connector();
-            connector.start(9899);
+            connector.start(5599);
         }
         catch (Exception e)
         {

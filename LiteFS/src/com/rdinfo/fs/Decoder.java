@@ -1,11 +1,11 @@
 package com.rdinfo.fs;
 
-import java.io.FileNotFoundException;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.CumulativeProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
+
+import java.io.FileNotFoundException;
 /**
  * 文件信息(格式：token=认证信息&md5=文件摘要信息&fileLength=文件长度)
  * 0：格式非法
@@ -57,6 +57,12 @@ public class Decoder extends CumulativeProtocolDecoder
                     out.write(3);
 
                     reset(session, buffer);
+
+                    if (buffer.remaining() > 0) {
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
                 return true;
             }
